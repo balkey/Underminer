@@ -1,0 +1,1185 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html lang="en">
+	<head>
+		<link type="text/css" rel="stylesheet" href="stylesheet2.css"/>
+		<link href="/src/nv.d3.css" rel="stylesheet" type="text/css">
+		<title>Underminer: Analisys for {{ filename }}</title>
+		<script type=text/javascript src="{{ url_for('static', filename='jquery.js') }}"></script>
+        <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+        <script src="/nv.d3.js"></script>
+        <script src="/src/utils.js"></script>
+        <script src="/src/tooltip.js"></script>
+        <script src="/src/interactiveLayer.js"></script>
+        <script src="/src/models/legend.js"></script>
+        <script src="/src/models/axis.js"></script>
+        <script src="/src/models/scatter.js"></script>
+        <script src="/src/models/stackedArea.js"></script>
+        <script src="/src/models/stackedAreaChart.js"></script>
+        <script src="/uploads/{{file_folder_short}}/{{filename[:-4]}}_display.js"></script>
+        <script src="/uploads/{{file_folder_short}}/{{filename[:-4]}}_sentiment.js"></script>
+        <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+        <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.js"></script>
+        <script type=text/javascript>$SCRIPT_ROOT = {{ request.script_root|tojson|safe }};</script>
+	</head>
+	<style>
+@font-face
+{
+font-family: TradeGothicLTStd-Light;
+    src: url("TradeGothicLTStd-Light.otf");
+}
+
+@font-face
+{
+font-family: TradeGothicLTStd-Bold;
+    src: url("TradeGothicLTStd-Bold.otf");
+}
+
+@font-face
+{
+font-family: TradeGothicLTStd-Cn18;
+    src: url("TradeGothicLTStd-Cn18.otf");
+}
+
+@font-face
+{
+font-family: TradeGothicLTStd-BoldObl;
+    src: url("TradeGothicLTStd-BoldObl.otf");
+}
+
+@font-face
+{
+font-family: TradeGothicLTStd-Bd2;
+    src: url("TradeGothicLTStd-Bd2.otf");
+}
+
+@font-face
+{
+font-family: TradeGothicLTStd-Cn180bl;
+src: url("TradeGothicLTStd-Cn18Obl.otf");
+}
+
+body {
+  overflow-y:scroll;
+}
+
+.container_stacked {
+    margin-top: 30px;
+    float: left;
+    margin-left: 10px;
+}
+
+#chart_right {
+    float: left;
+    width: 1000px;
+    height: 500px;
+    margin-right: -10px;
+}
+
+.sidebar_stacked {
+    width: 250px;
+    height: 350px;
+    float: left;
+    margin-right: 10px;
+}
+
+#chart_title {
+    font-family: TradeGothicLTStd-Bold;
+    font-size: 24px;
+    padding-left: 10px;
+    margin-bottom: 10px;
+}
+
+#chart_description {
+    font-size: 16px;
+    font-family: TradeGothicLTStd-Light;
+    color: black;
+    text-align: justify;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-bottom: 10px;
+}
+
+#bold {
+    font-family: TradeGothicLTStd-BoldObl;
+}
+
+#bold2 {
+    font-family: TradeGothicLTStd-Bold;
+    font-size: 14px;
+}
+
+.nv-legend-text {
+    font-family: TradeGothicLTStd-Cn18;
+    font-size: 16px;
+}
+
+.search {
+    float: left;
+    width: 250px;
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+
+
+input[type=image] {
+    float: left;
+    height: 35px;
+    margin-left: 10px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    border: none;
+    outline: none;
+    margin-top: -1px;
+    border-radius: 0px;
+    margin-bottom: 10px;
+}
+
+input[type=text][name=series] {
+    width: 180px;
+    padding-top:3px;
+    padding-left: 5px;
+    margin-left: 10px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    border-radius: 1px;
+    float: left;
+    background-color: #d6d6d6;
+    height: 29px;
+    color: #9d9f9f;
+    font-size: 12px;
+    outline: none;
+    border: none;
+    font-family: TradeGothicLTStd-Bd2;
+    box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.9);
+    margin-bottom: 10px;
+}
+
+input[type=text]:focus {
+    outline: none;
+    background-color: #ffffff;
+}
+
+#autocomplete_results {
+    width: 0px;
+    height: 0px;
+    float: left;
+    font-family: TradeGothicLTStd-Bd2;
+}
+
+.ui-helper-hidden-accessible {
+    display:none;
+}
+
+.ui-autocomplete {
+    background-color: #ffffff;
+    border: 1px solid #b6b6b6;
+    z-index: 40;
+    width: 179px;
+    max-height: 170px;
+    padding: 4px 0px 4px 4px;
+    font-family: TradeGothicLTStd-Bd2;
+    color: #616363;
+    font-size: 12px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    opacity: 1;
+    box-shadow: 6px 6px 8px rgba(0,0,0,0.75);
+}
+
+.ui-menu-item {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+.ui-state-focus {
+    background-color: #616363;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-right: 3px;
+    padding-left: 2px;
+    color: #ffffff;
+    cursor:pointer;
+    cursor:hand;
+}
+
+::-webkit-input-placeholder { /* WebKit browsers */
+    font-family: TradeGothicLTStd-Cn180bl;
+    color: #9d9f9f;
+    font-size: 14px;
+}
+:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+    opacity:  1;
+    font-family: TradeGothicLTStd-Cn180bl;
+    color: #9d9f9f;
+    font-size: 14px;
+}
+::-moz-placeholder { /* Mozilla Firefox 19+ */
+    opacity:  1;
+    font-family: TradeGothicLTStd-Cn180bl;
+    color: #9d9f9f;
+    font-size: 14px;
+}
+:-ms-input-placeholder { /* Internet Explorer 10+ */
+    font-family: TradeGothicLTStd-Cn180bl;
+    color: #9d9f9f;
+    font-size: 14px;
+}
+
+.nv-axislabel {
+    font-size: 20px;
+    font-family: TradeGothicLTStd-Bold;
+}
+
+.remove-word {
+    fill: #ffffff;
+}
+
+.delete-word {
+    font-family: TradeGothicLTStd-Bold;
+}
+
+/*--------------------D3 CHAPTER START-----------------------------------------*/
+
+
+.bar:hover {
+  cursor:pointer;
+}
+
+.bar.active {
+    opacity: 1;
+}
+
+.bar.passive {
+    opacity: 0.3;
+}
+
+.bar {
+    opacity: 1;
+}
+
+.axis {
+  font-size: 14px;
+  font-family: TradeGothicLTStd-Light;
+  color: black;
+}
+
+.axis_text {
+    font-size: 20px;
+    font-family: TradeGothicLTStd-Bold;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.container {
+    float: left;
+    margin-top: 30px;
+    margin-bottom: 30px;
+    margin-left: 10px;
+    width: 100%;
+}
+
+.sidebar {
+    width: 250px;
+    float: left;
+}
+
+#chart_title {
+    font-family: TradeGothicLTStd-Bold;
+    font-size: 24px;
+    padding-left: 10px;
+}
+
+#chart_description {
+    font-size: 16px;
+    font-family: TradeGothicLTStd-Light;
+    color: black;
+    text-align: justify;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+#bold {
+    font-family: TradeGothicLTStd-BoldObl;
+}
+
+#bold2 {
+    font-family: TradeGothicLTStd-Bold;
+    font-size: 14px;
+}
+
+.legend_row {
+    font-family: TradeGothicLTStd-Cn18;
+    font-size: 16px;
+    overflow: hidden;
+    width: 130px;
+    display: none;
+    margin-left: 5px;
+}
+
+.legend_active {
+    font-family: TradeGothicLTStd-Bold;
+    font-size: 16px;
+    color: white;
+    overflow: hidden;
+    width: 130px;
+    background: rgba(35,34,27,0.9);
+    border: 1px solid rgba(0,0,0,.2);
+    border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    margin-left: 5px;
+}
+
+.legend_active:before {
+	position: absolute;
+	content: '';
+	background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,0.4)), to(rgba(0,0,0,0)));
+	background-image: -webkit-linear-gradient(top, rgba(255,255,255,0.4), rgba(0,0,0,0));
+	background-image:    -moz-linear-gradient(top, rgba(255,255,255,0.4), rgba(0,0,0,0));
+	background-image:     -ms-linear-gradient(top, rgba(255,255,255,0.4), rgba(0,0,0,0));
+	background-image:      -o-linear-gradient(top, rgba(255,255,255,0.4), rgba(0,0,0,0));
+  	background-image:         linear-gradient(to bottom, rgba(255,255,255,0.4), rgba(0,0,0,0));
+	width: 130px;
+	height: 30px;
+	left: 16px;
+	border-radius: 4px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+	margin-bottom: 5px;
+	box-shadow: inset 0px 1px 0px rgba(255,255,255,0.5);
+}
+
+.legend_color {
+    width: 20px;
+    height: 20px;
+    border: 1px solid gray;
+    float: left;
+    margin: 5px;
+}
+
+.legend_text {
+    padding-top: 9px;
+    float: left;
+}
+
+#noun {
+    background-color: #f28d2f;
+}
+
+#pronoun {
+    background-color: #fdc185;
+}
+
+#adjective {
+    background-color: #fddb61;
+}
+
+#verb {
+    background-color: #57af66;
+}
+
+#auxiliary_verb {
+    background-color: #000000;
+}
+
+#adverb {
+    background-color: #5d8989;
+}
+
+#preposition {
+    background-color: #60c0ca;
+}
+
+#conjuction {
+    background-color: #000000;
+}
+
+#interjection {
+    background-color: #000000;
+}
+
+#unknown {
+    background-color: #c4c1ba;
+}
+
+#chart_wrapper {
+    float: left;
+    width: 1000px;
+    height: 500px;
+    margin-left: 10px;
+    display: inline-block;
+}
+
+.tooltip_chapter {
+    position: absolute;
+    background: rgba(35,34,27,0.9);
+    color: white;
+	font-weight: normal;
+	border: 1px solid rgba(0,0,0,.2);
+	padding: 8px 16px;
+    padding: 5px;
+    font-family: TradeGothicLTStd-Light;
+    font-size: 13px;
+    border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    pointer-events: none;
+    -webkit-box-shadow: 7px 7px 5px 0px rgba(50, 50, 50, 0.75);
+    -moz-box-shadow:    7px 7px 5px 0px rgba(50, 50, 50, 0.75);
+    box-shadow:         7px 7px 5px 0px rgba(50, 50, 50, 0.75);
+}
+
+.tooltip_chapter:before {
+	position: absolute;
+	content: '';
+	background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,0.4)), to(rgba(0,0,0,0)));
+	background-image: -webkit-linear-gradient(top, rgba(255,255,255,0.4), rgba(0,0,0,0));
+	background-image:    -moz-linear-gradient(top, rgba(255,255,255,0.4), rgba(0,0,0,0));
+	background-image:     -ms-linear-gradient(top, rgba(255,255,255,0.4), rgba(0,0,0,0));
+	background-image:      -o-linear-gradient(top, rgba(255,255,255,0.4), rgba(0,0,0,0));
+  	background-image:         linear-gradient(to bottom, rgba(255,255,255,0.4), rgba(0,0,0,0));
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	height: 100%;
+    border-radius: 4px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+	box-shadow: inset 0px 1px 0px rgba(255,255,255,0.5);
+}
+
+#frequents {
+    background:#7e7e7e;
+    width: 250px;
+    border-radius: 3px;
+    padding: 10px;
+
+}
+
+#occu_first {
+    color:#f28d2f;
+}
+
+#occu_second {
+    color:#fddb61;
+}
+
+#occu_third {
+    color:#57af66;
+}
+
+#occu_fourth {
+    color:#3d797f;
+}
+
+#occu_fifth {
+    color:#91E8E8;
+}
+
+</style>
+
+	<body background="/paper2.jpg" class='with-3d-shadow with-transitions'>
+		<div id="eraser"></div>
+		<div id="miner_logo_shadow"></div>
+		<div id='header_shadow'></div>
+	    <div id="header">
+	    	<a href="/"><img src="/miner.png"/>
+	        <h1>UNDERMINER</h1></a>
+	        <div id="menu">
+	        	<a href="/demo.html"><div id="demo">DEMO</div></a>
+	        	<a href="/docs.html"><div id="docs">DOCS</div></a>
+	        	<a href="/about.html"><div id="about">ABOUT</div></a>
+	        </div>
+	    </div>
+	    <div class="middle">
+	    	<div class="ribbon">
+	    		<h2>Analysis for <span class="italic">{{ filename }}</span></h2>
+	    	</div>
+	    	<h3 id="analysis_text_one">1. Most frequent words in {{ filename }}</h3>
+	    	<div class="table_text-container-middle-l">
+	    		<table class="tg">
+	    		    <tr>
+                        <th>WORD</th>
+                        <th>OCCURANCE</th>
+                    </tr>
+                    <tr>
+                        <td class="tg-8e65">{{ occurance_text_sorted[1][0] }}</td>
+                        <td class="tg-8e65">{{ occurance_text_sorted[1][1] }}</td>
+                    </tr>
+                    <tr>
+                        <td class="tg-71hr">{{ occurance_text_sorted[2][0] }}</td>
+                        <td class="tg-71hr">{{ occurance_text_sorted[2][1] }}</td>
+                    </tr>
+                    <tr>
+                        <td class="tg-thls">{{ occurance_text_sorted[3][0] }}</td>
+                        <td class="tg-thls">{{ occurance_text_sorted[3][1] }}</td>
+                    </tr>
+                    <tr>
+                        <td class="tg-v88f">{{ occurance_text_sorted[4][0] }}</td>
+                        <td class="tg-v88f">{{ occurance_text_sorted[4][1] }}</td>
+                    </tr>
+                    <tr>
+                        <td class="tg-hy62">{{ occurance_text_sorted[5][0] }}</td>
+                        <td class="tg-hy62">{{ occurance_text_sorted[5][1] }}</td>
+                    </tr>
+                    {% for word in occurance_text_sorted[6:21] %}
+                        {% if word[0] != 'kbkbkb' or 'chapterdeliminator' %}
+                            <tr>
+                                <td class="tg-031e">{{ word[0] }}</td>
+                                <td class="tg-031e">{{ word[1] }}</td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                </table>
+                <!---<div id="frequents">
+                    <li id='occu_first'>{{ occurance_text_sorted[1][0] }}: {{ occurance_text_sorted[1][1] }}</li>
+                    <li id='occu_second'>{{ occurance_text_sorted[2][0] }}: {{ occurance_text_sorted[2][1] }}</li>
+                    <li id='occu_third'>{{ occurance_text_sorted[3][0] }}: {{ occurance_text_sorted[3][1] }}</li>
+                    <li id='occu_fourth'>{{ occurance_text_sorted[4][0] }}: {{ occurance_text_sorted[4][1] }}</li>
+                    <li id='occu_fifth'>{{ occurance_text_sorted[5][0] }}: {{ occurance_text_sorted[5][1] }}</li>
+                </div>
+                {% for word in occurance_text_sorted[5:21] %}
+                  {% if word[0] != 'kbkbkb' or 'chapterdeliminator' %}
+                    <li>{{ word[0] }}: {{ word[1] }}</li>
+                  {% endif %}
+                {% endfor %}--->
+	    	</div>
+			<div class="analysis_image-container-middle-r">
+	    		<img src="/uploads/{{file_folder_short}}/{{filename[:-4]}}.png"/>
+	    	</div>
+	    	<!--------------D3-STACKED START----------------------------------->
+            <div class="container_stacked">
+	    	    <div class="sidebar_stacked">
+                    <div id="chart_title">Typical word occurances per chapter</div>
+                    <div id="chart_description">The chart shows the occurances of words typical to the text <span id="bold">(x)</span> for each chapter <span id="bold">(y)</span>.</div>
+                    <form class="search" action="">
+                        <input type="text" id="series_input" name="series" placeholder="e.g. Love">
+                        <input id='search_submit' type="image" src="/img/search.png">
+                    </form>
+                    <div id="chart_description">Use the input field to add more words - this is not a free text search, though all words present in the text are shown in the autofill menu.</div>
+                    <div id="chart_description">You can also remove words by doubleclicking over the legend of each word. With a single click, you will highlight the given word.</div>
+	                <div id="chart_title">Legend</div>
+                    <svg id="legend_svg"></svg>
+                </div>
+                <div id="chart_right">
+                    <svg id="chart1"></svg>
+                </div>
+                <div id="autocomplete_results"></div>
+            </div>
+            <!--------------D3-STACKED END----------------------------------->
+	    	<div class="analysis_text-container-middle">
+	    	    <div class="analysis_image-container-middle-l">
+	    		    <img src="/uploads/{{file_folder_short}}/{{filename[:-4]}}_piechart.png"/>
+	    	    </div>
+	    	    <div class="analysis_middle_text_right">
+	    	        <h3 id="analysis_text_two">2. Part of speech tagging</h3>
+	    	        <p id="analysis_text_description">Part of speech tagging is an interesting breed: mostly all longer texts split up into a quite constant array of nouns / verbs / etc. - no surprise here!</br></br>What's more interesting when you <span class="italic">combine</span> part of speech tagging with other forms of analysis. Would the occurences of only adjectives tell us more about the mood of a certain part of text, like a chapter? Certainly so! What about verbs? Do they present traces of action and happening?</br></br>Part of speech tagging becomes especially helpful when playing with n-grams and sentiment analysis, so for now just take our word: the application is ready to bring 100.300 English words for tagging, there can not be a lot more than that!</br></br>These features will be coming out soon on Underminer. Until then, part of speech tagging is displayed in a form of the good old boring piechart.</p>
+	    	    </div>
+	    	</div>
+	    	<!---------D3 CHART OCCURANCE START---------------------------->
+            <div class="container">
+                <div class="sidebar">
+                    <div id=chart_title>Typical sentence length</div>
+                    <p id="chart_description">The chart shows the average number of words present in an average sentence <span id="bold">(x)</span> for each chapter <span id="bold">(y)</span>.<br><br>Colors indicate the most common part of speech at the given word position.<br><br>Only those sentences are counted which have at least the average of the chapter's sentence length.</p>
+	                <div id=chart_title>Part of speech</div>
+	                <div class="legend">
+	                    <div class="legend_row" id="Noun"><div class="legend_color" id="noun"></div><span class="legend_text">Noun</span></div>
+	                    <div class="legend_row" id="Pronoun"><div class="legend_color" id="pronoun"></div><span class="legend_text">Pronoun</span></div>
+                        <div class="legend_row" id="Adjective"><div class="legend_color" id="adjective"></div><span class="legend_text">Adjective</span></div>
+                        <div class="legend_row" id="Verb"><div class="legend_color" id="verb"></div><span class="legend_text">Verb</span></div>
+                        <div class="legend_row" id="Auxiliary-verb"><div class="legend_color" id="auxiliary_verb"></div><span class="legend_text">Auxiliary-verb</span></div>
+                        <div class="legend_row" id="Adverb"><div class="legend_color" id="adverb"></div><span class="legend_text">Adverb</span></div>
+                        <div class="legend_row" id="Preposition"><div class="legend_color" id="preposition"></div><span class="legend_text">Preposition</span></div>
+                        <div class="legend_row" id="Conjuction"><div class="legend_color" id="conjuction"></div><span class="legend_text">Conjuction</span></div>
+                        <div class="legend_row" id="Interjection"><div class="legend_color" id="interjection"></div><span class="legend_text">Interjection</span></div>
+                        <div class="legend_row" id="Unknown"><div class="legend_color" id="unknown"></div><span class="legend_text">Unknown</span></div>
+	                </div>
+	            </div>
+	            <div id="chart_wrapper"></div>
+	        </div>
+            <!---------D3 CHART OCCURANCE END---------------------------->
+            <div class="chart_three">
+	    	    <div class="analysis_text-container-middle-l">
+	    		    <div id="chart_title">3. Sentiment analysis</div>
+	    		    <div id="chart_description">Every novel's - we're thinking linear plots - primal statement is probably about consequences (that cursed human condition).<br><br>Are things going generally the right direction or they just keep getting worse? Using TextBlob's sentiment analysis, this chart aims to make a guess at the direction of the plot: by associating a value <span id="bold">(y)</span> between <span id="bold">+1 (extremely good)</span> and <span id="bold">-1 (extremly unfornutane)</span> for each sentence of the text <span id="bold">(x)</span>, we are able to see how the plot progresses.<br><br>Please note: only those sentences are counted, where a sentiment could be detected - sentences with a value of zero are omitted from the chart.</div>
+	    	    </div>
+                <div id=graph></div>
+            </div>
+            <div id="button">
+	    		<p><span class="text-button">ACCESS FILES</span></p>
+	    		<p>Click for processed data!</p>
+	    		<!---<input type=file id='upload_button' name=file onchange="javascript:this.form.submit();" value=Upload>--->
+	    	</div>
+	    </div>
+	  	<div id="footer">
+	    	<div id="footer-line"></div>
+	        <p>&#169 2014 <a href="mailto:balkey80@gmail.com" subject="Underminer comment">Balazs Krich</a></p>
+	    </div>
+
+	    <script>
+$(document).ready(function() {
+
+    Array.prototype.contains = function(v) {
+        for(var i = 0; i < this.length; i++) {
+            if(this[i] === v) return true;
+            }
+            return false;
+    };
+
+    Array.prototype.unique = function() {
+        var arr = [];
+        for(var i = 0; i < this.length; i++) {
+            if(!arr.contains(this[i])) {
+                arr.push(this[i]);
+            }
+        }
+        return arr;
+    };
+
+    $('.legend_row').hover( function(){
+        $(this).attr("class", "legend_active");
+        var part_of_speech = $(this).attr("id");
+        d3.selectAll(".bar").each(function(d,i) {
+            var elt = d3.select(this);
+            if (elt.attr("kind") !== part_of_speech) {
+                elt.attr("class", "bar passive");
+            }
+            else {
+                elt.attr({"class": "bar active","stroke": "black", "stroke-width": "1"}).style("filter", "url(#drop-shadow)");
+            }
+        });
+    },
+    function(){
+            $(this).attr("class", "legend_row");
+            var bars = svg.selectAll(".bar");
+            bars.attr({"class": "bar", "stroke": "none"}).style("filter", "");
+    });
+
+    $('.legend_row').click( function(){
+        $(this).attr("class", "legend_active");
+        var part_of_speech = $(this).attr("id");
+        d3.selectAll(".bar").each(function(d,i) {
+            var elt = d3.select(this);
+            if (elt.attr("kind") !== part_of_speech) {
+                elt.attr("class", "bar passive");
+            }
+            else {
+                elt.attr({"class": "bar active","stroke": "black", "stroke-width": "1"}).style("filter", "url(#drop-shadow)");
+            }
+        });
+    });
+
+    $('.background_group').on("click", function(){
+        d3.selectAll(".bar").attr("class", "bar").attr("stroke", "none").style("filter", "");
+    });
+});
+</script>
+<script>
+$(document).ready(function(){
+
+    $("#series_input").autocomplete({
+         source: function(request, response) {
+             $.ajax({
+                url: "http://balkey.pythonanywhere.com/words",
+                dataType: "json",
+                data: {
+                    term : request.term,
+                    filename : "{{file_folder_short}}/{{filename[:-4]}}.json"
+                },
+                success: function(data) {
+                    response(data);
+                }
+            });
+        },
+        autoFocus: "true",
+        autoSelect: "true",
+        minLength: 1,
+        change: function(event,ui) {
+            if (ui.item==null) {
+                $("#series_input").val('');
+                $("#series_input").focus();
+            }
+        },
+        appendTo: "#autocomplete_results",
+    });
+
+    $(".search").validate({
+        errorClass: "wrong",
+        rules: {
+            series: {
+                required:true }
+        },
+        messages :{
+            series : {
+                required: 'Please name a series!'
+                }
+        },
+        submitHandler: function(form) {
+            $.getJSON($SCRIPT_ROOT + '/words_update', {
+                a: $("#series_input").val(),
+                b: "{{file_folder_short}}/{{filename[:-4]}}.json"
+            }, function(data) {
+                var result_resp = data,
+                    bjoriginal = histcatexplong;
+                    bjoriginal.push(result_resp);
+                    d3.select('#chart1')
+                        .datum(histcatexplong)
+                        .transition().duration(1000)
+                        .call(chart);
+                    $("#series_input").val('');
+                });
+        },
+        errorPlacement: function(error, element) {
+            error.appendTo( element.parent("td").next("td") );
+        }
+    });
+});
+
+/*
+.map(function(series) {
+  series.values = series.values.map(function(d) {
+    return { x: d[0], y: d[1] }
+  });
+  return series;
+});
+*/
+
+var test_colors = [
+    "#f28d2f",
+    "#fdc185",
+    "#fddb61",
+    "#667f6a",
+    "#57af66",
+    "#cbffd4",
+    "#3d797f",
+    "#60c0ca",
+    "#91E8E8",
+    "#c4c1ba"
+];
+
+nums = [1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+];
+
+var colors_stacked = d3.scale.ordinal()
+    .range(test_colors)
+    .domain(nums);
+function keyColor(d, i) {return colors_stacked(d.key)};
+
+var chart;
+nv.addGraph(function() {
+  chart = nv.models.stackedAreaChart()
+                //.width(600).height(500)
+                .useInteractiveGuideline(true)
+                .x(function(d) { return d[0] })
+                .y(function(d) { return d[1] })
+                .color(keyColor)
+                .transitionDuration(300);
+                //.clipEdge(true);
+
+// chart.stacked.scatter.clipVoronoi(false);
+
+
+  d3.select('#chart1')
+    .datum(histcatexplong)
+    .transition().duration(1000)
+    .call(chart)
+    // .transition().duration(0)
+    .each('start', function() {
+        setTimeout(function() {
+            d3.selectAll('#chart1 *').each(function() {
+              console.log('start',this.__transition__, this)
+              // while(this.__transition__)
+              if(this.__transition__)
+                this.__transition__.duration = 1;
+            })
+          }, 0)
+      })
+     /*.each('end', function() {
+             d3.selectAll('#chart1 *').each(function() {
+               console.log('end', this.__transition__, this)
+               // while(this.__transition__)
+               if(this.__transition__)
+                 this.__transition__.duration = 200;
+             })});*/
+
+    nv.utils.windowResize(chart.update);
+
+    // chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
+    return chart;
+    });
+</script>
+<script>
+        //-------------------D3 CHAPTER OCCURANCE START-----------------------------
+	        history.navigationMode = 'compatible';
+
+            var timeoutId;
+
+            var margin_occ = {top: 60, right: 20, bottom: 20, left: 60},
+                width_occ = 1000 - margin_occ.left - margin_occ.right,
+                height_occ = 500 - margin_occ.top - margin_occ.bottom;
+
+            var colors = {
+                Noun: "#f28d2f",
+                Pronoun: "#fdc185",
+                Adjective: "#fddb61",
+                Verb: "#57af66",
+                Auxiliary_verb: "#667f6a",
+                Adverb: "#5d8989",
+                Preposition: "#60c0ca",
+                Conjuction: "#3d797f",
+                Interjection: "#8acccc",
+                Unknown: "#c4c1ba"
+            };
+
+            var svg = d3.select("#chart_wrapper").append("svg")
+                    .attr("width", width_occ + margin_occ.left + margin_occ.right)
+                    .attr("height", height_occ + margin_occ.top + margin_occ.bottom)
+                    .attr("id", "chart")
+                .append("g")
+                    .attr("transform", "translate(" + margin_occ.left + "," + margin_occ.top + ")")
+                    .attr("id", "general");
+
+            svg.append("g")
+                .attr("class", "background_group")
+                    .append("rect")
+                        .attr("class", "background")
+                        .attr("width", "100%")
+                        .attr("height", "100%")
+                        .attr("fill", "#d4d4d4")
+                        .attr({"rx": "5", "ry": "5"})
+                        .attr("transform", "translate(" + (-margin_occ.left) + "," + (-margin_occ.top) + ")")
+                        .style("opacity", "0.4");
+
+            var tooltip = d3.select("body").append("div")
+                .attr("class", "tooltip_chapter")
+                .style("opacity", 0);
+
+
+
+            //Drop shadow for hover
+
+            var defs = svg.append("defs");
+
+            var filter = defs.append("filter")
+                .attr("id", "drop-shadow")
+                .attr("height", "130%")
+                .attr("width", "180%");
+
+
+            filter.append("feGaussianBlur")
+                .attr("in", "SourceAlpha")
+                .attr("stdDeviation", 1.4)
+                .attr("result", "blur");
+
+            filter.append("feOffset")
+                .attr("in", "blur")
+                .attr("dx", 2.5)
+                .attr("dy", 2.5)
+                .attr("result", "offsetBlur");
+
+            var feMerge = filter.append("feMerge");
+
+            feMerge.append("feMergeNode")
+                .attr("in", "offsetBlur")
+            feMerge.append("feMergeNode")
+                .attr("in", "SourceGraphic");
+
+            //Drop shadow for hover end
+
+
+            d3.tsv('uploads/{{file_folder_short}}/{{filename[:-4]}}_speech.tsv', type, function(error, data) {
+
+                var number_of_chapters = d3.max(data, function(d) { return d.CHAPTER; });
+
+                if (number_of_chapters < 50) {
+                    var chaptertext = number_of_chapters;
+                }
+                else {
+                    var chaptertext = number_of_chapters / 2;
+                }
+
+                var max_words = d3.max(data, function(d) { return d.WORD_POSITION; });
+
+                var x = d3.scale.ordinal()
+                    .domain(data.map(function(d) { return d.WORD_POSITION; }))
+                    .rangeRoundBands([0, width_occ]);
+
+                var y = d3.scale.linear()
+                    .domain([1, d3.max(data, function(d) { return d.CHAPTER; })+1])
+                    .range([0, height_occ]);
+
+                var yb = d3.scale.linear()
+                    .domain([1, number_of_chapters])
+                    .range([(height_occ/number_of_chapters)/2, height_occ-((height_occ/number_of_chapters)/2)]);
+
+                var xAxis = d3.svg.axis()
+                    .scale(x)
+                    .orient("top");
+
+                var yAxis = d3.svg.axis()
+                    .orient("left")
+
+                var bar_width = (height_occ / number_of_chapters)-(height_occ / number_of_chapters)/100*20;
+
+
+                svg.append("g")
+                    .attr("class", "x axis")
+                    .attr("transform", "translate(0, 0)")
+                    .call(xAxis)
+                .append("text")
+                    .attr("class", "axis_text")
+                    .attr("transform", "translate("+((width_occ/2)-210)+", -35)")
+                    .text("Number of words / average sentence / chapter");
+
+                svg.append("g")
+                        .attr("class", "y axis")
+                        .attr("transform", "translate(0,0)")
+                        .call(yAxis.scale(y).ticks(0).tickSize(0))
+                    .append("text")
+                        .attr({"transform": "rotate(-90), translate("+((-height_occ/2)-16)+",-35)"})
+                        .attr("class", "axis_text")
+                        .text("Chapters");
+
+                svg.append("g")
+                    .attr("class", "centered_text_y axis")
+                    .call(yAxis.scale(yb).ticks(chaptertext).tickSize(5));
+
+                svg.select(".background_group").selectAll("rect")
+                        .data(d3.range((number_of_chapters/2)+1))
+                    .enter().append("rect")
+                        .attr("class", "background_grid")
+                        .attr("height", function (d) {return height_occ / number_of_chapters })
+                        .attr("width", function (d) {return width_occ;})
+                        .attr("y", function (d) {return (d-1) * height_occ*2 / number_of_chapters })
+                        .style({"fill": "grey", "opacity": "0.2"})
+                        .style("filter", "url(#drop-shadow)");
+
+                svg.select(".background_group").selectAll("line")
+                        .data(d3.range(number_of_chapters))
+                    .enter().append("line")
+                        .attr("class", "background_line")
+                        .attr("y1", function (d) {return d * height_occ / number_of_chapters })
+                        .attr("y2", function (d) {return d * height_occ / number_of_chapters })
+                        .attr("x1", function (d) {return 0;})
+                        .attr("x2", function (d) {return width_occ;})
+                        .style("stroke", "grey");
+
+                svg.selectAll(".bar")
+                        .data(data)
+                    .enter().append("rect")
+                        .attr("class", "bar")
+                        .attr("fill", function(d) { return colors[d.WINNER]; } )
+                        .attr("x", function(d) { return x(d.WORD_POSITION)+(width_occ/max_words/2-(bar_width/2)); } )
+                        .attr("y", function(d) { return y(d.CHAPTER)+(height_occ/number_of_chapters/2-(bar_width/2)); })
+                        .attr("height", bar_width)
+                        .attr("width", bar_width)
+                        .attr("kind", function(d) { return d.WINNER; })
+                        .attr("chapter", function(d) { return d.CHAPTER })
+                        .attr("word_pos", function(d) { return d.WORD_POSITION })
+                        .on("mouseover", function(d) {
+                            var current = d3.select(this);
+                            if (current.attr("class") === "bar") {
+                                current.attr({"stroke": "black", "stroke-width": "1"}).style("filter", "url(#drop-shadow)");
+                            }
+                            else if (current.attr("class") === "bar active") {
+                                tooltip.transition()
+                                .duration(200)
+                                .style("opacity", .9);
+                            tooltip .html("<span id='bold2'>Part of speech:</span> "+d.WINNER+"<br/>"+"<span id='bold2'>Chapter:</span> "+d.CHAPTER+"<br/>"+"<span id='bold2'>Word position:</span> "+d.WORD_POSITION)
+                                    .style("left", (d3.event.pageX + 20) + "px")
+                                    .style("top", (d3.event.pageY - 60) + "px");
+                            }
+                            var ez = d3.select(this).attr("kind"),
+                                chapter = d3.select(this).attr("chapter"),
+                                word_pos = d3.select(this).attr("word_pos"),
+                                nums_y = $('.centered_text_y g').eq(chapter-1).find('text'),    //needs to be rewritten, what about books with chapters > 50???
+                                nums_x = $('.x g').eq(word_pos-1).find('text'),                 //same applies here...
+                                legend_effekt = document.getElementById(ez);
+                            if (!timeoutId) {
+                                timeoutId = window.setTimeout(function() {
+                                    timeoutId = null;
+                                    $(legend_effekt).attr("class", "legend_active");
+                                    d3.selectAll(nums_y).style({"font-family": "TradeGothicLTStd-Bold", "font-size": "15px", "color": "#8989ff"}).attr("x", "-12");
+                                    d3.selectAll(nums_x).style({"font-family": "TradeGothicLTStd-Bold", "font-size": "15px"}).attr("y", "-13");
+                                }, 150);
+                            }
+                        })
+                        .on("click", function(d){
+                            tooltip.transition()
+                                .duration(200)
+                                .style("opacity", .9);
+                            tooltip .html("<span id='bold2'>Part of speech:</span> "+d.WINNER+"<br/>"+"<span id='bold2'>Chapter:</span> "+d.CHAPTER+"<br/>"+"<span id='bold2'>Word position:</span> "+d.WORD_POSITION)
+                                    .style("left", (d3.event.pageX + 20) + "px")
+                                    .style("top", (d3.event.pageY - 60) + "px");
+                            var current = $(this),
+                                part_of_speech = $(this).attr("kind");
+                            if (current.attr("class") !== "bar active") {
+                                d3.selectAll(".bar").each(function(d,i) {
+                                    var elt = d3.select(this)
+                                        if (elt.attr("kind") !== part_of_speech) {
+                                            elt.attr("class", "bar passive")
+                                            .attr("stroke", "none")
+                                            .style("filter", "");
+                                        }
+                                        else {
+                                            elt.attr("stroke", "black")
+                                            .attr("stroke-width", "1")
+                                            .attr("class", "bar active")
+                                            .style("filter", "url(#drop-shadow)");
+                                        }
+                                });
+                            }
+                            else if (current.attr("class") === "bar active") {
+                                d3.selectAll(".bar")
+                                .attr("class", "bar")
+                                .attr("stroke", "none")
+                                .style("filter", "");
+                                tooltip.transition()
+                                    .duration(250)
+                                    .style("opacity", 0);
+                            }
+                        })
+                        .on("mouseout", function() {
+                            var current = d3.select(this);
+                            if (current.attr("class") === "bar") {
+                                current.attr("stroke", "none").style("filter", "")
+                            }
+                            var ez = d3.select(this).attr("kind"),
+                                chapter = d3.select(this).attr("chapter"),
+                                word_pos = d3.select(this).attr("word_pos"),
+                                legend_effekt = document.getElementById(ez),
+                                nums_y = $('.centered_text_y g').eq(chapter-1).find('text'),
+                                nums_x = $('.x g').eq(word_pos-1).find('text');
+                            if (timeoutId) {
+                                window.clearTimeout(timeoutId);
+                                timeoutId = null;
+                            }
+                            else {
+                                $(legend_effekt).attr("class", "legend_row");
+                                d3.selectAll(nums_y).style({"font-family": "TradeGothicLTStd-Light", "font-size": "13px"}).attr("x", "-8");
+                                d3.selectAll(nums_x).style({"font-family": "TradeGothicLTStd-Light", "font-size": "13px"}).attr("y", "-9");
+                                 tooltip.transition()
+                                    .duration(500)
+                                    .style("opacity", 0);
+                            }
+                        });
+            });
+
+            function type(d) {
+                d.CHAPTER = +d.CHAPTER;
+                d.WORD_POSITION = +d.WORD_POSITION;
+                return d;
+            };
+
+        $(window).load(function() {
+	        setTimeout(function(){
+                var all_list = new Array;
+                d3.selectAll(".bar").each(function(d,i) {
+                    var element = d3.select(this);
+                    all_list.push(element.attr("kind"));
+                });
+                var unique_list = all_list.unique();
+                $('.legend_row').each(function(d,i) {
+                    var part_of_speech = $(this).attr("id");
+                    if ( $.inArray(part_of_speech, unique_list) > -1 ) {
+                        $(this).show();
+                    }
+                });
+            }, 300);
+        });
+        </script>
+        <script>
+        $(document).ready(function(){
+
+		/* implementation heavily influenced by http://bl.ocks.org/1166403 */
+
+		// define dimensions of graph
+		var m = [20, 20, 60, 85]; // margins
+		var w = 1000 - m[1] - m[3]; // width
+		var h = 500 - m[0] - m[2]; // height
+
+		// X scale will fit all values from data[] within pixels 0-w
+		var x = d3.scale.linear().domain([0, sentiment.length]).range([0, w]);
+		// Y scale will fit values from 0-10 within pixels h-0 (Note the inverted domain for the y-scale: bigger is up!)
+		var y = d3.scale.linear().domain([-1, 1]).range([h, 0]);
+
+		// create a line function that can convert data[] into x and y points
+		var line = d3.svg.line()
+			// assign the X function to plot our line as we wish
+			.x(function(d,i) {
+				// verbose logging to show what's actually being done
+				//console.log('Plotting X value for data point: ' + d + ' using index: ' + i + ' to be at: ' + x(i) + ' using our xScale.');
+				// return the X coordinate where we want to plot this datapoint
+				return x(i);
+			})
+			.y(function(d) {
+				// verbose logging to show what's actually being done
+				//console.log('Plotting Y value for data point: ' + d + ' to be at: ' + y(d) + " using our yScale.");
+				// return the Y coordinate where we want to plot this datapoint
+				return y(d);
+			})
+
+			// Add an SVG element with the desired dimensions and margin.
+			var graph = d3.select("#graph").append("svg:svg")
+			      .attr("width", w + m[1] + m[3])
+			      .attr("height", h + m[0] + m[2])
+			    .append("svg:g")
+			      .attr("transform", "translate(" + m[3] + "," + m[0] + ")");
+
+			graph.append("rect")
+			    .attr("class", "background")
+                .attr("width", "100%")
+                .attr("height", "100%")
+                .attr("fill", "#d4d4d4")
+                .attr({"rx": "5", "ry": "5"})
+                .attr("transform", "translate(" + (-m[3]) + "," + (-m[0]) + ")")
+                .style("opacity", "0.4");
+
+			// create yAxis
+			var xAxis = d3.svg.axis().scale(x).tickSize(-h).tickSubdivide(true);
+			// Add the x-axis.
+			graph.append("svg:g")
+			      .attr("class", "x axis")
+			      .attr("transform", "translate(0," + h + ")")
+			      .call(xAxis)
+			      .append("text")
+                    .attr("class", "axis_text")
+                    .attr("transform", "translate("+((w/2)-200)+", +50)")
+                    .text("Number of sentences with detected sentiment");
+
+
+			// create left yAxis
+			var yAxisLeft = d3.svg.axis().scale(y).ticks(4).orient("left");
+			// Add the y-axis to the left
+			graph.append("svg:g")
+			      .attr("class", "y axis")
+			      .attr("transform", "translate(-25,0)")
+			      .call(yAxisLeft)
+			      .append("text")
+                        .attr({"transform": "rotate(-90), translate("+((-h/2)-35)+", -35)"})
+                        .attr("class", "axis_text")
+                        .text("Sentiment");
+
+  			// Add the line by appending an svg:path element with the data line we created above
+			// do this AFTER the axes above so that the line is above the tick-lines
+  			graph.append("svg:path").attr({"d": line(sentiment), "opacity": 0.6});
+        });
+        </script>
+        <script>
+
+        </script>
+	</body>
+</html>
