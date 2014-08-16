@@ -837,6 +837,7 @@ def prideandprejudice_page():
 
 @app.route('/antichrist.html')
 def antichrist_page():
+<<<<<<< HEAD
   return render_template("analysis2.html", filename="antichrist.txt", file_folder_short="antichrist_2014_8_16_18_3_20_482391", occurance_text_sorted=[('kbkbkb', 2510), ('god', 191), ('man', 130), ('christian', 118), ('christianity', 111), ('work', 104), ('thing', 100), ('life', 99), ('will', 98), ('gutenberg', 92), ('project', 90), ('instinct', 89), ('great', 78), ('truth', 64), ('priest', 62), ('sort', 62), ('men', 58), ('concept', 58), ('tm', 57), ('fact', 53), ('german', 51), ('power', 51), ('state', 51), ('lie', 49), ('nietzsche', 48), ('people', 47), ('call', 45), ('order', 44), ('form', 44), ('time', 44)])
 
 
@@ -849,3 +850,6 @@ def antichrist_page():
 
 
 
+=======
+  return render_template("analysis2.html", filename="antichrist.txt", file_folder_short="antichrist_2014_8_16_18_3_20_482391", occurance_text_sorted=[('kbkbkb', 2510), ('god', 191), ('man', 130), ('christian', 118), ('christianity', 111), ('work', 104), ('thing', 100), ('life', 99), ('will', 98), ('gutenberg', 92), ('project', 90), ('instinct', 89), ('great', 78), ('truth', 64), ('priest', 62), ('sort', 62), ('men', 58), ('concept', 58), ('tm', 57), ('fact', 53), ('german', 51), ('power', 51), ('state', 51), ('lie', 49), ('nietzsche', 48), ('people', 47), ('call', 45), ('order', 44), ('form', 44), ('time', 44)])
+>>>>>>> 6ac35fbb81f54c212197dc8d2053d646fe0a988d
