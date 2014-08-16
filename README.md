@@ -21,3 +21,4 @@ nv.d3.js
 
 svg.js
 
+Word stemming is mainly done with the help of the Webster Unabridged Dictionary.
